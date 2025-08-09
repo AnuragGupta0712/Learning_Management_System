@@ -1,7 +1,5 @@
 package EdTech.Course.service;
 
-
-
 import EdTech.Course.dto.CourseDto;
 import EdTech.Course.dto.Payment;
 import EdTech.Course.model.Course;
@@ -42,14 +40,14 @@ public class CourseService {
         course.setName(courseDto.getName());
         course.setDescription(courseDto.getDescription());
         course.setInstructor(courseDto.getInstructor());
-        for (CourseMaterial courseMaterial : courseDto.getCourseMaterial()) {
+        for(CourseMaterial courseMaterial : courseDto.getCourseMaterial()){
             courseMaterial.setCourse(course);
         }
-//        for (Enrollment enrollment : courseDto.getEnrollments()) {
-//            enrollment.setCourse(course);
-//        }
+        for(Enrollment enrollment : courseDto.getEnrollments()){
+            enrollment.setCourse(course);
+        }
         course.setCourseMaterial(courseDto.getCourseMaterial());
-       // course.setEnrollment(courseDto.getEnrollments());
+        course.setEnrollment(courseDto.getEnrollments());
         courseRepository.save(course);
     }
 
@@ -60,14 +58,15 @@ public class CourseService {
             existingCourse.setDescription(updatedCourseDto.getDescription());
             existingCourse.setInstructor(updatedCourseDto.getInstructor());
             existingCourse.setAmount(updatedCourseDto.getAmount());
-            for (CourseMaterial courseMaterial : updatedCourseDto.getCourseMaterial()) {
+            for(CourseMaterial courseMaterial : updatedCourseDto.getCourseMaterial()){
                 courseMaterial.setCourse(existingCourse);
             }
-//            for (Enrollment enrollment : updatedCourseDto.getEnrollments()) {
-//                enrollment.setCourse(existingCourse);
-//            }
+            for(Enrollment enrollment : updatedCourseDto.getEnrollments()){
+                enrollment.setCourse(existingCourse);
+            }
             courseRepository.save(existingCourse);
-        } else {
+        }
+        else{
             throw new RuntimeException("Course do not exist");
         }
     }
@@ -80,47 +79,12 @@ public class CourseService {
         return courseRepository.findByName(name);
     }
 
-    public Course getCourseByInstructor(String instructor) {
+    public Course getCourseByInstructor(String instructor){
         return courseRepository.findByInstructor(instructor);
     }
 
-    public List<CourseMaterial> getCourseMaterialByCourseId(Long id) {
+    public List<CourseMaterial> getCourseMaterialByCourseId(Long id){
         return courseRepository.findById(id).orElseThrow().getCourseMaterial();
     }
 
-
-    public void createEnrollmentForCourse(Long courseId, Long userId, String token) {
-
-        // ✅ Step 1: Check if user exists by calling User Service
-        String userServiceUrl = "http://localhost:8083/user/" + userId;
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token); // 🔐 Use the actual token
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> requestEntity = new HttpEntity<>(null, headers);
-
-        ResponseEntity<Object> response = restTemplate.exchange(
-                userServiceUrl,
-                HttpMethod.GET,
-                requestEntity,
-                Object.class
-        );
-
-        if (response.getBody() == null) {
-            throw new RuntimeException("User not found");
-        }
-
-        Enrollment enrollment = new Enrollment();
-        enrollment.setUserId(userId);
-        enrollment.setCourse(courseRepository.findById(courseId).orElseThrow());
-        enrollmentRepository.save(enrollment);
-
-        // creating payment
-        String paymentServiceUrl = "http://localhost:8082/payment";
-        Payment payment = new Payment();
-        payment.setCourseId(courseId);
-        payment.setUserId(userId);
-        payment.setAmount(enrollment.getCourse().getAmount());
-        restTemplate.postForObject(paymentServiceUrl, payment, Payment.class);
-    }
 }

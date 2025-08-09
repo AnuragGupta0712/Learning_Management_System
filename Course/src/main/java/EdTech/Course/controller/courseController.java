@@ -14,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/courses")
 public class courseController {
+
     @Autowired
     private CourseService courseService;
 
@@ -67,23 +68,6 @@ public class courseController {
         courseService.deleteCourse(id);
         return new ResponseMessage("Course Deleted Successfully");
     }
-
-    @PostMapping("/course/{courseId}/register/{userId}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ResponseMessage registerForCourse(
-            @PathVariable Long courseId,
-            @PathVariable Long userId,
-            @RequestHeader("Authorization") String authHeader) {
-
-        // Remove "Bearer " prefix if present and pass the token
-        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
-
-        courseService.createEnrollmentForCourse(courseId, userId, token);
-        return new ResponseMessage("Student Enrolled Successfully");
-    }
-
-
-
 
 
 }

@@ -1,6 +1,5 @@
 package EdTech.Course.dto;
 
-
 import lombok.*;
 
 @Data
