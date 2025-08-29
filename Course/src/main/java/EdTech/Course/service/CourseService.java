@@ -87,4 +87,29 @@ public class CourseService {
         return courseRepository.findById(id).orElseThrow().getCourseMaterial();
     }
 
+    public void createEnrollmentForCourse(Long courseId, Long userId) {
+
+        // call to user to find user is available
+        String userServiceUrl = "http://localhost:8082/user";
+        HttpHeaders header = new HttpHeaders();
+        header.set("Authorization", "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJuIiwiaWF0IjoxNjkyODc0NzAwLCJleHAiOjE2OTI5NjExMDB9.89mmketCJqLeIfBcK7roZg_tRDOHFBwqDd3LiyBszq8M37Zm_o2vZXKLaVFZCEFhCH9sk9Kv988scOipgfyVNw");
+        header.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> requestEntity = new HttpEntity<>(null, header);
+        ResponseEntity<Object>  response = restTemplate.exchange(userServiceUrl + "/" + userId, HttpMethod.GET,
+                requestEntity, Object.class);
+        if(response.getBody() == null) throw new RuntimeException("User not found");
+
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUserId(userId);
+        enrollment.setCourse(courseRepository.findById(courseId).orElseThrow());
+        enrollmentRepository.save(enrollment);
+
+        // creating payment
+        String paymentServiceUrl = "http://localhost:8087/payment";
+        Payment payment = new Payment();
+        payment.setCourseId(courseId);
+        payment.setUserId(userId);
+        payment.setAmount(enrollment.getCourse().getAmount());
+        restTemplate.postForObject(paymentServiceUrl, payment, Payment.class);
+    }
 }

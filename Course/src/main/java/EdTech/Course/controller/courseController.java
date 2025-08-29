@@ -70,4 +70,12 @@ public class courseController {
     }
 
 
+    @PostMapping("/course/{courseId}/register/{userId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseMessage registerForCourse(@PathVariable Long courseId, @PathVariable Long userId){
+        courseService.createEnrollmentForCourse(courseId, userId);
+        return new ResponseMessage("Student Enrolled Successfully");
+    }
+
+
 }
